@@ -1,103 +1,27 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+import { ArrowRight, BriefcaseBusiness, Code2, Mail, Menu, Send, Sparkles, X } from "lucide-react";
+import { getPublishedProjects } from "../services/projectService";
+import { createContactMessage } from "../services/contactService";
 
+const skills = { Frontend:["React.js","Next.js","JavaScript","Tailwind CSS","Redux Toolkit"], Backend:["Node.js","Express.js","REST API","BullMQ"], Database:["MongoDB","Firebase / Firestore"], Infrastructure:["Redis","AWS S3","Git","GitHub"] };
+const fallbackProjects = [{ id:"showcase", title:"Your next digital product", slug:"your-next-digital-product", shortDescription:"A dynamic project showcase powered by Firebase.", technologies:["Next.js","Firebase","Tailwind CSS"] }];
+const experiences = [{company:"Knovator Technologies Pvt Ltd", role:"MERN Stack Developer", date:"Feb 2024 — Present", location:"Rajkot, Gujarat, India", text:"Building reliable, end-to-end products with modern JavaScript, APIs, caching and scalable architecture."},{company:"Mind Space",role:"Front-End Developer",date:"Sep 2023 — Feb 2024",location:"Delhi, India · Remote",text:"Created polished responsive interfaces and thoughtful front-end experiences."}];
+const services = [["Full Stack Development","Complete, scalable applications from interface to infrastructure."],["Next.js Development","Fast, SEO-aware web experiences built for growth."],["REST API Development","Secure, maintainable APIs that connect your product."],["Performance Optimization","Speed, caching, and smarter backend performance."],["Database Development","Sound MongoDB and Firestore data foundations."],["Freelance Development","Custom digital solutions for startups and teams."]];
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+ const [menu,setMenu]=useState(false), [projects,setProjects]=useState([]), [form,setForm]=useState({name:"",email:"",subject:"",message:""}), [status,setStatus]=useState("");
+ useEffect(()=>{getPublishedProjects().then(setProjects).catch(()=>setProjects(fallbackProjects))},[]);
+ const submit=async(e)=>{e.preventDefault();setStatus("sending");try { await createContactMessage(form);setStatus("success");setForm({name:"",email:"",subject:"",message:""});} catch {setStatus("error")}};
+ const links=["Home","About","Skills","Experience","Projects","Contact"];
+ return <main>
+  <nav className="nav"><a className="logo" href="#home">MG<span>.</span></a><div className={menu?"navlinks open":"navlinks"}>{links.map(x=><a onClick={()=>setMenu(false)} href={`#${x.toLowerCase()}`} key={x}>{x}</a>)}<a className="nav-cta" href="#contact">Hire me <ArrowRight size={15}/></a></div><button aria-label="Toggle menu" className="menu" onClick={()=>setMenu(!menu)}>{menu?<X/>:<Menu/>}</button></nav>
+  <section id="home" className="hero"><div className="hero-orb one"/><div className="hero-orb two"/><p className="eyebrow"><Sparkles size={15}/> Available for freelance work</p><h1>Hi, I&apos;m <em>Mehul</em><br/>Gondaliya.</h1><h2>MERN Stack Developer <i>&amp;</i> Freelancer</h2><p className="hero-copy">I build scalable, modern and user-focused web applications using modern JavaScript technologies.</p><div className="actions"><a className="primary" href="#projects">View projects <ArrowRight size={17}/></a><a className="secondary" href="#contact">Let&apos;s work together</a></div><div className="socials"><a aria-label="GitHub" href="https://github.com"><Code2/></a><a aria-label="LinkedIn" href="https://www.linkedin.com/in/dev-mehul-gondaliya/"><BriefcaseBusiness/></a><a aria-label="Email" href="mailto:hello@mehul.dev"><Mail/></a></div><div className="code-card"><div><span/><span/><span/></div><code><b>const</b> developer = &#123;<br/> &nbsp;name: <strong>&quot;Mehul&quot;</strong>,<br/> &nbsp;passion: <strong>&quot;building things&quot;</strong><br/>&#125;;</code></div></section>
+  <section id="about" className="section about"><header><p className="eyebrow">01 / About me</p><h2>The person behind<br/><em>the pixels.</em></h2></header><div className="about-copy"><p>I am a MERN Stack Developer and Freelancer with experience building full-stack web applications using modern JavaScript technologies.</p><p>From the smallest interaction to the architecture that powers it, I focus on useful, performant experiences that are made to grow.</p><div className="stats"><div><b>2+</b><span>Years building</span></div><div><b>20+</b><span>Projects shipped</span></div><div><b>100%</b><span>Commitment</span></div></div></div></section>
+  <section id="skills" className="section"><header><p className="eyebrow">02 / Expertise</p><h2>A practical <em>stack</em><br/>for ambitious ideas.</h2></header><div className="skill-grid">{Object.entries(skills).map(([group,items])=><article className="glass skill-card" key={group}><Code2 size={20}/><h3>{group}</h3><div>{items.map(item=><span className="tag" key={item}>{item}</span>)}</div></article>)}</div></section>
+  <section id="experience" className="section"><header><p className="eyebrow">03 / Journey</p><h2>Experience that<br/><em>compounds.</em></h2></header><div className="timeline">{experiences.map(x=><article className="experience" key={x.company}><div className="timeline-dot"/><p>{x.date}</p><div><h3>{x.company}</h3><h4>{x.role}</h4><small>{x.location}</small><p>{x.text}</p></div></article>)}</div></section>
+  <section id="projects" className="section projects"><header><p className="eyebrow">04 / Selected work</p><h2>Built with care,<br/><em>made to matter.</em></h2></header><div className="project-grid">{projects.map((p,i)=><article className="project glass" key={p.id}><div className={'project-image color-'+(i%3)}>{p.imageUrl?<img src={p.imageUrl} alt={p.title}/>:<BriefcaseBusiness size={48}/>}<span>0{i+1}</span></div><div className="project-info"><h3>{p.title}</h3><p>{p.shortDescription}</p><div>{(p.technologies||[]).map(t=><span className="tag" key={t}>{t}</span>)}</div><a href={`/projects/${p.slug}`}>View details <ArrowRight size={15}/></a></div></article>)}</div></section>
+  <section id="services" className="section"><header><p className="eyebrow">05 / Services</p><h2>How I can help<br/><em>you move forward.</em></h2></header><div className="services">{services.map(([title,text],i)=><article key={title}><span>0{i+1}</span><h3>{title}</h3><p>{text}</p><ArrowRight size={18}/></article>)}</div></section>
+  <section id="contact" className="section contact"><div><p className="eyebrow">06 / Contact</p><h2>Let&apos;s make something<br/><em>worth remembering.</em></h2><p>Have a project in mind? I&apos;d love to hear about it.</p><a className="mail-link" href="mailto:hello@mehul.dev">hello@mehul.dev <ArrowRight size={18}/></a></div><form className="glass" onSubmit={submit}><label>Name<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Your name"/></label><label>Email<input required type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="you@example.com"/></label><label>Subject<input required value={form.subject} onChange={e=>setForm({...form,subject:e.target.value})} placeholder="How can I help?"/></label><label>Message<textarea required minLength="10" value={form.message} onChange={e=>setForm({...form,message:e.target.value})} placeholder="Tell me a little about your project..."/></label><button className="primary" disabled={status==="sending"}>{status==="sending"?"Sending...":<>Send message <Send size={16}/></>}</button>{status==="success"&&<p className="success">Thanks! Your message has been received.</p>}{status==="error"&&<p className="error">Something went wrong. Please try again.</p>}</form></section>
+  <footer><a className="logo" href="#home">MG<span>.</span></a><p>© {new Date().getFullYear()} Mehul Gondaliya. Crafted with intent.</p><a href="/admin/login">Admin</a></footer>
+ </main>
 }

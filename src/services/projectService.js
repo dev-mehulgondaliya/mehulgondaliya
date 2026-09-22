@@ -11,7 +11,18 @@ export async function getPublishedProjects(){
 }
 export async function getAllProjects(){return clean(await getDocs(query(collection(db,"projects"),orderBy("createdAt","desc"))))}
 export async function getProject(id){const item=await getDoc(doc(db,"projects",id));return item.exists()?{id:item.id,...item.data()}:null}
-export async function getProjectBySlug(slug){const items=clean(await getDocs(query(collection(db,"projects"),where("slug","==",slug))));return items[0]||null}
+// The public Firestore rule only permits published documents. Include that
+// constraint in the query too, otherwise Firestore rejects it because a slug
+// query could also return a draft or archived project. Older records may have
+// been linked with their title (including spaces) before a normalized slug was
+// saved, so retain a published-only title fallback for those URLs.
+export async function getProjectBySlug(slug){
+  const value=decodeURIComponent(String(slug));
+  const bySlug=clean(await getDocs(query(collection(db,"projects"),where("slug","==",value),where("status","==","published"))));
+  if(bySlug[0])return bySlug[0];
+  const byTitle=clean(await getDocs(query(collection(db,"projects"),where("title","==",value),where("status","==","published"))));
+  return byTitle[0]||null;
+}
 export function createProject(data){return addDoc(collection(db,"projects"),{...data,createdAt:serverTimestamp(),updatedAt:serverTimestamp()})}
 export function updateProject(id,data){return updateDoc(doc(db,"projects",id),{...data,updatedAt:serverTimestamp()})}
 export function deleteProject(id){return deleteDoc(doc(db,"projects",id))}
